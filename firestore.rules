@@ -1,0 +1,35 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isOwner() { return request.auth != null && resource.data.uid == request.auth.uid; }
+
+    match /attempts/{attemptId} {
+      allow read: if request.auth != null && resource.data.uid == request.auth.uid;
+      allow create: if request.auth != null && request.resource.data.uid == request.auth.uid
+        && request.resource.data.keys().hasOnly(['uid','email','attemptId','dreamOneLiner','businessType','stage','constraint','status','createdAt','updatedAt'])
+        && request.resource.data.status == 'unpaid';
+      allow update: if request.auth != null && isOwner()
+        && !('status' in request.resource.data.diff(resource.data).changedKeys())
+        && !('paymentStatus' in request.resource.data.diff(resource.data).changedKeys())
+        && !('stripeSessionId' in request.resource.data.diff(resource.data).changedKeys())
+        && !('stewardshipScore' in request.resource.data.diff(resource.data).changedKeys())
+        && !('learningScore' in request.resource.data.diff(resource.data).changedKeys())
+        && !('integrityScore' in request.resource.data.diff(resource.data).changedKeys())
+        && !('totalScore' in request.resource.data.diff(resource.data).changedKeys())
+        && !('readinessLevel' in request.resource.data.diff(resource.data).changedKeys())
+        && !('outcomeBand' in request.resource.data.diff(resource.data).changedKeys())
+        && !('patternLabel' in request.resource.data.diff(resource.data).changedKeys())
+        && !('hardRedFlag' in request.resource.data.diff(resource.data).changedKeys())
+        && !('hardRedFlagType' in request.resource.data.diff(resource.data).changedKeys())
+        && !('personalisedParagraph' in request.resource.data.diff(resource.data).changedKeys())
+        && !('next14DaysBullets' in request.resource.data.diff(resource.data).changedKeys())
+        && !('shareSummary' in request.resource.data.diff(resource.data).changedKeys())
+        && !('pdfStoragePath' in request.resource.data.diff(resource.data).changedKeys())
+        && !('emailedAt' in request.resource.data.diff(resource.data).changedKeys());
+    }
+
+    match /config/{doc} {
+      allow read, write: if false;
+    }
+  }
+}
